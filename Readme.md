@@ -12,6 +12,12 @@ Strings;
 => ["Hello World"]
 ```
 
+Variables:
+```
+var
+=> [var]
+```
+
 Lists:
 ```
 ()
