@@ -1,42 +1,48 @@
 #include <stdio.h>
 
-/*define various identifiers*/
+/*identifiers*/
 typedef enum {
-  NUMBER
+  NUMBER, STRING
 } object_type;
 
-/*define the object that will hold the parser stuff*/
+/*basic object that other objects inherit from*/
 typedef struct object {
   object_type type;
   long data;
 } object;
 
-/*write number to stdout*/
-object write(object obj) {
-  printf("[%ld, %d]\n\n", obj.data, obj.type);
+/*number object*/
+typedef struct number_object {
+  object obj;
+  long data;
+} number_object;
+
+/*string object*/
+typedef struct string_object {
+  object obj;
+  char data[1000];
+} string_object;
+
+int isdelimiter(int input) {
+  return input == EOF  ||
+         input == '\n' ||
+         input == ';'  ||
+         input == ' '
+         ;
 }
 
 int main () {
   int input;
-  int input_index;
   long num = 0;
 
-  object input_object;
+  while ((input = getc(stdin)) != EOF) {
+    if (isdelimiter(input) && num > 0) {
+      printf("%ld\n", num);
+      num = 0;
+    }
 
-  while ((input = getc(stdin)) != EOF || input != '\n') {
     if (isdigit(input)) {
       num = (num * 10) + (input - '0');
     }
-
-    if (input == ' ' || input == '\n') {
-      input_object.type = NUMBER;
-      input_object.data = num;
-
-      write(input_object);
-
-      num = 0;
-    }
   }
-
-  return 0;
 }
