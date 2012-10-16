@@ -6,20 +6,19 @@ typedef enum {
 } object_type;
 
 /*basic object that other objects inherit from*/
-typedef struct object {
+typedef struct basic_object {
   object_type type;
-  long data;
-} object;
+} basic_object;
 
 /*number object*/
 typedef struct number_object {
-  object obj;
+  basic_object obj;
   long data;
 } number_object;
 
 /*string object*/
 typedef struct string_object {
-  object obj;
+  basic_object obj;
   char data[1000];
 } string_object;
 
