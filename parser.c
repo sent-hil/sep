@@ -3,20 +3,29 @@
 long *stack[1000];
 int stack_index = 0;
 
-typedef struct basic_object {
-  char type[10];
+enum {
+  NUMBER, STRING, VARIABLE
+};
+
+typedef struct basic_class {
+  int type;
   int value;
-} basic_object;
+} basic_class;
 
-typedef struct number_object {
-  char type[10];
+typedef struct number_class {
+  int type;
   long value;
-} number_object;
+} number_class;
 
-typedef struct pair_object {
-  struct basic_object left;
-  struct basic_object right;
-} pair_object;
+typedef struct char_class {
+  int type;
+  char value[100];
+} char_class;
+
+typedef struct pair_class {
+  struct basic_class left;
+  struct basic_class right;
+} pair_class;
 
 int is_open_pair(int input) {
   return input == '(';
@@ -37,8 +46,23 @@ int is_delimiter(int input) {
          ;
 }
 
-int read_keyword_or_variable(int input) {
-  char input_array[100];
+int read_variable_or_string(int input, char_class char_obj) {
+  int index = 0;
+  int i = 0;
+
+  while (input = getc(stdin)) {
+    if (is_delimiter(input) || is_quote(input)) {
+      for (i = 0; i < index; i++) {
+        printf("%c", char_obj.value[i]);
+      }
+
+      printf("\n");
+
+      break;
+    }
+
+    char_obj.value[index++] = input;
+  }
 }
 
 int read_pair(int input) {
@@ -51,6 +75,7 @@ int read_pair(int input) {
       for (i = 0; i < index; i++) {
         printf("%c", string[i]);
       }
+
       printf("\n");
 
       break;
@@ -70,6 +95,7 @@ int read_string(int input) {
       for (i = 0; i < index; i++) {
         printf("%c", string[i]);
       }
+
       printf("\n");
 
       break;
@@ -79,9 +105,8 @@ int read_string(int input) {
   }
 }
 
-int read_number(int first_number) {
+int read_number(int first_number, number_class num_obj) {
   int input;
-  number_object num_obj;
   extern long *stack[];
 
   /*stack[stack_index] = &num_obj;*/
@@ -102,20 +127,25 @@ int read_number(int first_number) {
 
 int read(void) {
   int input;
+  number_class number_obj;
+  char_class char_obj;
 
   input = getc(stdin);
 
   if (isdigit(input)) {
-    read_number(input);
+    number_obj.type = NUMBER;
+    read_number(input, number_obj);
   }
   else if (is_quote(input)) {
-    read_string(input);
+    char_obj.type = STRING;
+    read_variable_or_string(input, char_obj);
   }
   else if (is_open_pair(input)) {
     read_pair(input);
   }
   else {
-    read_keyword_or_variable(input);
+    char_obj.type = VARIABLE;
+    read_variable_or_string(input, char_obj);
   }
 }
 
