@@ -4,8 +4,16 @@ long *stack[1000];
 int stack_index = 0;
 
 enum {
-  NUMBER, STRING, VARIABLE
+  NUMBER, STRING, VARIABLE, LINKEDLIST
 };
+
+typedef struct link_list_class {
+  int type;
+  struct number_class *num_obj;
+  struct char_class *char_obj;
+  struct link_list_class *first;
+  struct link_list_class *last;
+} link_list_class;
 
 typedef struct basic_class {
   int type;
@@ -46,9 +54,10 @@ int is_delimiter(int input) {
          ;
 }
 
-int read_variable_or_string(int input, char_class char_obj) {
+int read_variable_or_string(int input, link_list_class link_list_obj) {
   int index = 0;
   int i = 0;
+  char_class char_obj;
 
   while (input = getc(stdin)) {
     if (is_delimiter(input) || is_quote(input)) {
@@ -57,6 +66,8 @@ int read_variable_or_string(int input, char_class char_obj) {
       }
 
       printf("\n");
+
+      link_list_obj.char_obj = &char_obj;
 
       break;
     }
@@ -81,8 +92,15 @@ int read_pair(int input) {
       break;
     }
 
+    if (is_delimiter(input)) {
+      string[i++] = '\0';
+      break;
+    }
+
     string[index++] = input;
   }
+
+  return string;
 }
 
 int read_string(int input) {
@@ -105,12 +123,9 @@ int read_string(int input) {
   }
 }
 
-int read_number(int first_number, number_class num_obj) {
+number_class read_number(int first_number) {
   int input;
-  extern long *stack[];
-
-  /*stack[stack_index] = &num_obj;*/
-  num_obj.value = (first_number - '0');
+  number_class num_obj;
 
   while (input = getc(stdin)) {
     if (isdigit(input)) {
@@ -123,30 +138,34 @@ int read_number(int first_number, number_class num_obj) {
   }
 
   printf("%ld\n", num_obj.value);
+
+  return num_obj;
 }
 
 int read(void) {
   int input;
-  number_class number_obj;
-  char_class char_obj;
+  link_list_class link_list_obj;
+  link_list_class open_obj;
 
   input = getc(stdin);
 
   if (isdigit(input)) {
-    number_obj.type = NUMBER;
-    read_number(input, number_obj);
+    link_list_obj.type = NUMBER;
+    return_obj = read_number(input);
   }
   else if (is_quote(input)) {
-    char_obj.type = STRING;
-    read_variable_or_string(input, char_obj);
+    link_list_obj.type = STRING;
+    read_variable_or_string(input, link_list_obj);
   }
   else if (is_open_pair(input)) {
     read_pair(input);
   }
   else {
-    char_obj.type = VARIABLE;
-    read_variable_or_string(input, char_obj);
+    link_list_obj.type = VARIABLE;
+    read_variable_or_string(input, link_list_obj);
   }
+
+  open_obj.last = &return_obj;
 }
 
 int main () {
