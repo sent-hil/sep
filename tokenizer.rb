@@ -3,7 +3,7 @@ require 'pry'
 
 class Tokenizer
   KEYS       = ['(', ')']
-  DELIMITERS = [' ', "\n"]
+  DELIMITERS = [' ', "\n", "\t"]
 
   attr_reader :output
 
@@ -20,6 +20,7 @@ class Tokenizer
       if KEYS.include?(char)
         output << current unless current.empty?
         output << char
+        current = ''
       elsif DELIMITERS.include?(char)
         output << current unless current.empty?
         current = ''
@@ -49,7 +50,15 @@ describe Tokenizer do
     subject.tokenize("(foo bar)").should == ['(','foo', 'bar', ')']
   end
 
-  it 'tokenizes new lines' do
+  it 'tokenizes parens inside parens list' do
+    subject.tokenize("(foo (bar))").should == ['(','foo', '(', 'bar', ')', ')']
+  end
+
+  it 'ignores new lines' do
     subject.tokenize("(foo \n bar)").should == ['(','foo', 'bar', ')']
+  end
+
+  it 'ignores tabs' do
+    subject.tokenize("(foo \t bar)").should == ['(','foo', 'bar', ')']
   end
 end
