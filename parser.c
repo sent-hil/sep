@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+
 long *stack[1000];
 int stack_index = 0;
 
@@ -123,7 +124,7 @@ int read_string(int input) {
   }
 }
 
-number_class read_number(int first_number) {
+number_class *read_number(int first_number) {
   int input;
   number_class num_obj;
 
@@ -139,7 +140,7 @@ number_class read_number(int first_number) {
 
   printf("%ld\n", num_obj.value);
 
-  return num_obj;
+  return &num_obj;
 }
 
 int read(void) {
@@ -151,7 +152,7 @@ int read(void) {
 
   if (isdigit(input)) {
     link_list_obj.type = NUMBER;
-    return_obj = read_number(input);
+    open_obj.num_obj = read_number(input);
   }
   else if (is_quote(input)) {
     link_list_obj.type = STRING;
@@ -164,8 +165,6 @@ int read(void) {
     link_list_obj.type = VARIABLE;
     read_variable_or_string(input, link_list_obj);
   }
-
-  open_obj.last = &return_obj;
 }
 
 int main () {
