@@ -3,28 +3,25 @@
 Numbers:
 ```
 1
-=> [1]
+=> "1"
 ```
 
 Strings;
 ```
 "Hello World!"
-=> ["Hello World"]
+=> "Hello World"
 ```
 
 Variables:
 ```
 var
-=> [var]
+=> "var"
 ```
 
 Lists:
 ```
 ()
-=> [[]]
-
-'(one two)
-=> [[:quote, [:one, :two]]]
+=> []
 ```
 
 Lets:
