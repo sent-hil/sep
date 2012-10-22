@@ -21,12 +21,10 @@ class Function
     !nested?
   end
 
-  def next_node
-    results = arguments.select do |arg|
+  def next_nodes
+    arguments.select do |arg|
       arg.respond_to?(:node?)
     end
-
-    results.first
   end
 
   def node?
@@ -37,8 +35,13 @@ class Function
     if last_node?
       arguments.first.send(operator, arguments.last)
     else
-      result = next_node.eval
-      arguments.first.send(operator, result)
+      results = next_nodes.map {|node| node.eval}
+      total = arguments.first
+      results.each do |result|
+        total = total.send(operator, result)
+      end
+
+      total
     end
   end
 end
@@ -60,21 +63,38 @@ describe Function do
     end
   end
 
-  context 'double nodes' do
+  context 'nested nodes' do
     subject do
       described_class.new(:+, 4, (described_class.new(:*, 1, 2)))
     end
 
-    it 'returns true for nested' do
-      subject.nested?.should == true
+    it 'returns result of eval' do
+      subject.eval.should == 6
     end
+  end
 
-    it 'returns false for last node' do
-      subject.last_node?.should == false
+  context 'double nodes' do
+    subject do
+      described_class.new(:+, 4,
+                          described_class.new(:*, 1, 2),
+                          described_class.new(:+, 3, 1))
     end
 
     it 'returns result of eval' do
-      subject.eval.should == 6
+      subject.eval.should == 10
+    end
+  end
+
+  context 'triple nodes' do
+    subject do
+      described_class.new(:*, 4,
+                          described_class.new(:*, 1, 2),
+                          described_class.new(:*, 0, 2),
+                          described_class.new(:+, 3, 1))
+    end
+
+    it 'returns result of eval' do
+      subject.eval.should == 0
     end
   end
 end
