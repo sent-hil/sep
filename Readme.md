@@ -1,4 +1,4 @@
-# sep: A S-expression parser for lisp
+# sep: Ruby/C scheme intepreter
 
 Numbers:
 ```
