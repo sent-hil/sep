@@ -54,6 +54,14 @@ describe Tokenizer do
     subject.tokenize("(foo (bar))").should == ['(','foo', '(', 'bar', ')', ')']
   end
 
+  it 'tokenizes define' do
+    subject.tokenize("(define (hello 1))").should == ['(', 'define', '(', 'hello', '1', ')', ')']
+  end
+
+  it 'tokenizes lambda' do
+    subject.tokenize("(lambda (x) (+ x x))").should == ['(', 'lambda', '(', 'x', ')', '(', '+', 'x', 'x', ')', ')']
+  end
+
   it 'ignores new lines' do
     subject.tokenize("(foo \n bar)").should == ['(','foo', 'bar', ')']
   end
