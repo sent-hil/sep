@@ -1,7 +1,23 @@
 require 'rspec'
 require 'pry'
 
-class Function
+class SchemeEnv
+  attr_reader :table
+
+  def initialize
+    @table = {}
+  end
+end
+
+$SchemeEnv = SchemeEnv.new
+
+class Object
+  def define(*arguments)
+    $SchemeEnv.table[self] = Sexp.new(*arguments)
+  end
+end
+
+class Sexp
   attr_accessor :arguments, :operator
 
   def initialize(*arguments)
@@ -46,7 +62,13 @@ class Function
   end
 end
 
-describe Function do
+p = Proc.new do |x|
+  puts x
+end
+
+p.call(1)
+
+describe Sexp do
   context 'single nodes' do
     subject { described_class.new(:+, 1, 2) }
 
@@ -95,6 +117,16 @@ describe Function do
 
     it 'returns result of eval' do
       subject.eval.should == 0
+    end
+  end
+
+  context 'define' do
+    subject do
+      described_class.new(:define, :println, :puts)
+    end
+
+    it do
+      subject.eval.should == ''
     end
   end
 end
