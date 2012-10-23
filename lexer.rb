@@ -1,16 +1,4 @@
-require 'rspec'
 require 'pry'
-#require_relative 'tokenizer'
-
-class Node
-  attr_accessor :parent, :child, :body
-
-  def initialize(parent, child)
-    @parent = parent
-    @child  = child
-    @body   = []
-  end
-end
 
 class Lexer
   SPECIAL_FORMS = ['lambda', 'define']
@@ -18,37 +6,29 @@ class Lexer
   CLOSEBRACKET  = ')'
 
   def lex(sexp)
-    original = parent = []
-    current  = nil
+    token = sexp.shift
 
-    sexp.each do |s|
-      if s == OPENBRACKET
-        current = Array.new
-        parent << current
-        parent = current
-        next
-      elsif s == CLOSEBRACKET
-        current = nil
-        next
-      elsif SPECIAL_FORMS.include?(s)
-        current = Array.new
-        parent << current
-        parent = current
-        current << s
-        next
+    if token == '('
+      result = []
+
+      while sexp[0] != ')'
+        result << lex(sexp)
       end
 
-      current << s
+      sexp.shift
+
+      return result
+    else
+      return atom(token)
     end
-
-    original.flatten
   end
-end
 
-class Func
-  def initialize(name, *args)
-    @name = name
-    @args = *args
+  def atom(token)
+    if token.respond_to?(:to_int)
+      token.to_i
+    else
+      token.to_sym
+    end
   end
 end
 
@@ -57,11 +37,15 @@ describe Lexer do
     described_class.new
   end
 
-  it 'lexes numbers inside parens' do
-    subject.lex(["(", "1", ")"]).should == ["1"]
+  it 'lexes empty list' do
+    subject.lex(['(', ')']).should == []
   end
 
-  it 'lexes special forms:lambda' do
-    subject.lex(["(", "lambda", "(", "x", ")", "(", "+", "x", "x", ")", ")"]).should == [:lambda, [:x], [:+, :x, :s]]
+  it 'lexes single parameter list' do
+    subject.lex(['(', 'foo', ')']).should == [:foo]
+  end
+
+  it 'lexes multi parameter list' do
+    subject.lex(['(', 'lambda', '(', 'x', ')', '(', '+', 'x', 'x', ')', ')']).should == [:lambda, [:x], [:+, :x, :x]]
   end
 end
