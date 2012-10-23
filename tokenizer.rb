@@ -1,4 +1,3 @@
-require 'rspec'
 require 'pry'
 
 class Tokenizer
@@ -60,6 +59,14 @@ describe Tokenizer do
 
   it 'tokenizes lambda' do
     subject.tokenize("(lambda (x) (+ x x))").should == ['(', 'lambda', '(', 'x', ')', '(', '+', 'x', 'x', ')', ')']
+  end
+
+  xit 'tokenizes strings' do
+    subject.tokenize('"Hello World!"').should == "Hello World"
+  end
+
+  xit 'tokenizes two strings as arrays' do
+    subject.tokenize('"Hello" "World"').should == ["Hello", "World"]
   end
 
   it 'ignores new lines' do
