@@ -1,25 +1,36 @@
 require 'pry'
 
-class Environ
-  attr_reader :table
-
-  def initialize
-    @table = {}
-  end
+def reduc(operator)
+  Proc.new {|*args| args.reduce(&operator)}
 end
 
-class GlobalEnviron < Environ
-end
+GlobalEnviron = {
+  :+  => reduc(:+),
+  :-  => reduc(:-),
+  :*  => reduc(:*),
+  :/  => reduc(:/),
+  :%  => reduc(:%),
+  :>  => reduc(:>),
+  :<  => reduc(:<),
+  :== => reduc(:==)
+}
+
+Environ = {}
 
 class Intepreter
   def eval(tokens, env)
     if self_evaluating?(tokens[0])
       return tokens[0]
     elsif is_definition?(tokens)
-      env = Environ.new.table[tokens.shift] = tokens
+      tokens.shift
+      tokens.flatten!
+      env[tokens[0]] = tokens[1]
       return env
-    else
-      env.table[tokens[0]]
+    elsif variable?(tokens)
+      lookup_variable(tokens, env)
+    elsif tokens[0] == :lambda
+      env[tokens.shift].call(tokens)
+      return env
     end
   end
 
@@ -34,16 +45,31 @@ class Intepreter
   def is_definition?(tokens)
     tokens[0] == :define
   end
+
+  def is_lambda(tokens)
+    tokens[0] == :lambda
+  end
+
+  def variable?(tokens)
+    tokens[1].nil?
+  end
+
+  def lookup_variable(tokens, env)
+    env[tokens[0]]
+  end
 end
 
 describe Intepreter do
-  subject do
-    described_class.new
-  end
+  subject { described_class.new }
+  before  { Environ.clear }
 
   context '#self_evaluating?' do
     it 'returns true for Integer' do
       subject.self_evaluating?(1).should == true
+    end
+
+    it 'returns true for String' do
+      subject.self_evaluating?('Hello World').should == true
     end
   end
 
@@ -56,13 +82,13 @@ describe Intepreter do
   end
 
   it 'evals define variables' do
-    subject.eval([:define, [:x], [1]], nil).should ==
-      [[:x], [1]]
+    subject.eval([:define, [:x], [1]], Environ)[:x].should == 1
   end
 
   it 'evals variables' do
-    env = Environ.new
-    env.table[:x] = 1
-    subject.eval([:x], env).should == 1
+    Environ[:x] = 1
+    subject.eval([:x], Environ).should == 1
   end
+
+  it 'evals'
 end
