@@ -2,6 +2,11 @@ require_relative 'intepreter'
 
 describe Lisp do
   subject { described_class.new }
+  before  do
+    Lisp::GlobalEnviron[0] = {
+      :+ => proc {|args| args.reduce(:+)},
+    }
+  end
 
   context 'type of token' do
     it 'finds Integer' do
@@ -12,8 +17,8 @@ describe Lisp do
       subject.self_evaluating?('Hello World').should == true
     end
 
-    it 'finds definition' do
-      subject.definition?([:define, [:x, 1]]).should == true
+    it 'finds variable setters' do
+      subject.set_variable?([:define, :x, 1]).should == true
     end
 
     it 'finds lumbdas aka lambdas' do
@@ -30,8 +35,8 @@ describe Lisp do
   end
 
   it 'evals define variables' do
-    env = subject.evalulate([:define, [:x, 1]])
-    env[0][:x].should == 1
+    subject.evalulate([[:define, :x, 1]])
+    Lisp::GlobalEnviron[0][:x].should == 1
   end
 
   it 'evals define variables to current environ' do
@@ -60,19 +65,29 @@ describe Lisp do
   end
 
   it 'eval lookup variables in global env' do
-    global = [{:x => 1}]
-    env = [{}, global]
-    subject.evalulate([:x], env).should == 1
+    Lisp::GlobalEnviron[0][:x] = 1
+    subject.evalulate([:x]).should == 1
   end
 
   it 'returns nil for unknown variable' do
-    env = [{}]
-    subject.evalulate([:x], env).should == nil
+    subject.evalulate([:x]).should == nil
   end
 
-  it 'evals lumbda' do
-    env = [{:+ => proc {|args| args.reduce(:+)}}, {}]
-    subject.evalulate([:lumbda, [:+], [1, 1]], env).should == 2
+  it 'evals lambda' do
+    subject.evalulate([[:lambda, [:x], [:+, :x, :x]], 1]).should == 2
+  end
+
+  it 'evals lambda' do
+    subject.evalulate([[:lambda, [:x], [:-, :x, :x]], 1]).should == 0
+  end
+
+  it 'evals define' do
+    subject.evalulate(
+      [
+        [:define, [:add], [:lambda, [:x], [:+, :x, :x]]],
+        [:add, 1]
+      ]
+    ).should == 0
   end
 
   it 'evals lumbda with vars' do
@@ -82,48 +97,6 @@ describe Lisp do
         :x => 1
     }, {}]
 
-    subject.evalulate([:lumbda, [:+], [:x, :x]], env).should == 2
+    subject.evalulate([[:lambda, [:x], [:+, :x, :x]], 1]).should == 2
   end
 end
-
-#describe Intepreter do
-  #subject { described_class.new }
-#
-#
-  #before  { Environ.clear }
-
-  #context '#self_evaluating?' do
-    #it 'returns true for Integer' do
-      #subject.self_evaluating?(1).should == true
-    #end
-
-    #it 'returns true for String' do
-      #subject.self_evaluating?('Hello World').should == true
-    #end
-
-    #it 'returns false for list' do
-      #subject.self_evaluating?([]).should == false
-    #end
-  #end
-
-  #it 'evals numbers' do
-    #subject.eval([1], nil).should == 1
-  #end
-
-  #it 'evals strings' do
-    #subject.eval(['Hello World'], nil).should == 'Hello World'
-  #end
-
-  #it 'evals define variables' do
-    #subject.eval([:define, [:x], [1]], Environ)[:x].should == 1
-  #end
-
-  #it 'evals variables' do
-    #Environ[:x] = 1
-    #subject.eval([:x], Environ).should == 1
-  #end
-
-  #it 'evals lambdas' do
-    #subject.eval([:lambda, [:x], [:+, :x, :x]], Environ).should == ''
-  #end
-#end
